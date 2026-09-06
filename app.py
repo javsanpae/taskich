@@ -136,7 +136,8 @@ def create_task():
             due_date=data.get('due_date'),
             recurring=data.get('recurring'),
             recurring_interval=data.get('recurring_interval'),
-            recurring_end_date=data.get('recurring_end_date')
+            recurring_end_date=data.get('recurring_end_date'),
+            tags=data.get('tags')
         )
         return jsonify({'id': task_id, 'status': 'created'}), 201
     except Exception as e:
@@ -167,7 +168,8 @@ def update_task(task_id):
             title=data.get('title'),
             description=data.get('description'),
             due_date=data.get('due_date'),
-            scope=scope
+            scope=scope,
+            tags=data.get('tags')
         )
         return jsonify({'status': 'updated'})
     except Exception as e:

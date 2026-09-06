@@ -69,6 +69,7 @@ def init_db():
                 recurring_interval VARCHAR(50),
                 recurring_end_date TIMESTAMP,
                 parent_task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+                tags TEXT,
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -107,6 +108,7 @@ def init_db():
                 recurring_interval TEXT,
                 recurring_end_date TIMESTAMP,
                 parent_task_id INTEGER,
+                tags TEXT,
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -124,6 +126,12 @@ def init_db():
             )
         ''')
     
+    # Non-destructive migration check for existing databases
+    try:
+        c.execute("ALTER TABLE tasks ADD COLUMN tags TEXT")
+    except Exception:
+        pass
+
     conn.commit()
     c.close()
     conn.close()
@@ -181,23 +189,23 @@ def _parse_interval(interval_str):
     
     return {'days': 1}
 
-def create_task(user_id, title, description, due_date=None, recurring=None, recurring_interval=None, recurring_end_date=None, parent_task_id=None):
+def create_task(user_id, title, description, due_date=None, recurring=None, recurring_interval=None, recurring_end_date=None, parent_task_id=None, tags=None):
     """Create a new task"""
     conn = get_connection()
     c = conn.cursor()
     
     if IS_POSTGRESQL:
         c.execute('''
-            INSERT INTO tasks (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO tasks (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id, tags)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
-        ''', (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id))
+        ''', (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id, tags))
         task_id = c.fetchone()[0]
     else:
         c.execute('''
-            INSERT INTO tasks (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id))
+            INSERT INTO tasks (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id, tags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id, tags))
         task_id = c.lastrowid
     
     conn.commit()
@@ -214,7 +222,7 @@ def get_task(task_id, user_id):
     """Get a single task for a specific user"""
     return get_task_by_user(task_id, user_id)
 
-def update_task(task_id, user_id, title=None, description=None, due_date=None, scope='this_only'):
+def update_task(task_id, user_id, title=None, description=None, due_date=None, scope='this_only', tags=None):
     """Update a task for a specific user. scope can be 'this_only' or 'all_following'"""
     conn = get_connection()
     c = conn.cursor()
@@ -245,6 +253,12 @@ def update_task(task_id, user_id, title=None, description=None, due_date=None, s
         else:
             updates.append("due_date = ?")
         params.append(due_date)
+    if tags is not None:
+        if IS_POSTGRESQL:
+            updates.append("tags = %s")
+        else:
+            updates.append("tags = ?")
+        params.append(tags)
     
     if updates:
         if IS_POSTGRESQL:
@@ -317,8 +331,8 @@ def _create_next_recurring_instance(task_id, task, user_id):
     # Create new instance
     if IS_POSTGRESQL:
         c.execute('''
-            INSERT INTO tasks (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO tasks (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id, tags)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         ''', (
             user_id,
@@ -328,13 +342,14 @@ def _create_next_recurring_instance(task_id, task, user_id):
             task['recurring'],
             task['recurring_interval'],
             task['recurring_end_date'],
-            task.get('parent_task_id') or task_id
+            task.get('parent_task_id') or task_id,
+            task.get('tags')
         ))
         new_task_id = c.fetchone()[0]
     else:
         c.execute('''
-            INSERT INTO tasks (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO tasks (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id, tags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             user_id,
             task['title'],
@@ -343,7 +358,8 @@ def _create_next_recurring_instance(task_id, task, user_id):
             task['recurring'],
             task['recurring_interval'],
             task['recurring_end_date'],
-            task.get('parent_task_id') or task_id
+            task.get('parent_task_id') or task_id,
+            task.get('tags')
         ))
         new_task_id = c.lastrowid
     

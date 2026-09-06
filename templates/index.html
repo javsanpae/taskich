@@ -22,7 +22,7 @@
                         </svg>
                     </div>
                     <span class="brand-title">taskich</span>
-                    <span class="brand-badge">2026</span>
+                    <span class="brand-badge">2.0</span>
                 </div>
 
                 <div class="nav-user-actions">
@@ -106,6 +106,19 @@
                     </nav>
                 </div>
 
+                <!-- Dynamic Tags Navigation Section -->
+                <div class="sidebar-section" id="sidebarTagsSection" style="display: none;">
+                    <div class="sidebar-heading-row">
+                        <span class="sidebar-heading">Tags</span>
+                        <button type="button" id="clearTagFilterBtn" class="clear-tag-filter-btn" title="Clear tag filter" style="display: none;">
+                            Clear
+                        </button>
+                    </div>
+                    <nav class="sidebar-nav" id="tagsList">
+                        <!-- Dynamically populated tags -->
+                    </nav>
+                </div>
+
                 <!-- Productivity Progress Card -->
                 <div class="sidebar-productivity-card">
                     <div class="productivity-header">
@@ -167,6 +180,23 @@
                                     class="task-input-description" 
                                     rows="2"
                                 ></textarea>
+                            </div>
+
+                            <div class="composer-field-group">
+                                <label for="taskTags" class="drawer-label">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+                                        <path d="M7 7h.01"></path>
+                                    </svg>
+                                    <span>Tags</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="taskTags" 
+                                    placeholder="Add tags separated by commas (e.g. work, urgent, bug)" 
+                                    class="form-input"
+                                    autocomplete="off"
+                                >
                             </div>
 
                             <div class="composer-grid-fields">
@@ -304,6 +334,11 @@
                     <div class="form-group">
                         <label for="modalDueDate" class="form-label">Due Date</label>
                         <input type="datetime-local" id="modalDueDate" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modalTaskTags" class="form-label">Tags (comma separated)</label>
+                        <input type="text" id="modalTaskTags" class="form-input" placeholder="e.g. work, urgent, bug">
                     </div>
 
                     <div class="recurring-info-card" id="recurringInfo" style="display: none;">

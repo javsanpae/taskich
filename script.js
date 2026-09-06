@@ -1,5 +1,6 @@
 // Global state
 let currentFilter = 'active';
+let currentTagFilter = null;
 let allTasks = [];
 let currentEditingTaskId = null;
 let pendingAction = null;
@@ -9,6 +10,7 @@ let warningResolve = null;
 // DOM elements
 const taskTitleInput = document.getElementById('taskTitle');
 const taskDescriptionInput = document.getElementById('taskDescription');
+const taskTagsInput = document.getElementById('taskTags');
 const dueDateInput = document.getElementById('dueDate');
 const recurringSelect = document.getElementById('recurring');
 const customRecurringGroup = document.getElementById('customRecurringGroup');
@@ -23,6 +25,7 @@ const taskCount = document.getElementById('taskCount');
 const tasksTitle = document.getElementById('tasksTitle');
 const filterBtns = document.querySelectorAll('.filter-btn');
 const modal = document.getElementById('taskModal');
+const modalTaskTagsInput = document.getElementById('modalTaskTags');
 const scopeModal = document.getElementById('scopeModal');
 const warningModal = document.getElementById('warningModal');
 const closeModalBtns = document.querySelectorAll('.close-btn');
@@ -40,6 +43,9 @@ const warningCancelBtn = document.getElementById('warningCancelBtn');
 const warningMessage = document.getElementById('warningMessage');
 const toggleDrawerBtn = document.getElementById('toggleDrawerBtn');
 const composerDrawer = document.getElementById('composerDrawer');
+const sidebarTagsSection = document.getElementById('sidebarTagsSection');
+const tagsList = document.getElementById('tagsList');
+const clearTagFilterBtn = document.getElementById('clearTagFilterBtn');
 
 // SVG Icon Helpers for Dynamic Content
 const ICONS = {
@@ -103,6 +109,24 @@ scopeCancel.addEventListener('click', closeScopeModal);
 
 if (deleteAllCompletedBtn) {
     deleteAllCompletedBtn.addEventListener('click', deleteAllCompleted);
+}
+
+if (clearTagFilterBtn) {
+    clearTagFilterBtn.addEventListener('click', () => {
+        currentTagFilter = null;
+        updateTitle();
+        renderTasks();
+        updateTagsSidebar();
+    });
+}
+
+// Parse comma-separated tags helper
+function parseTags(tagsStr) {
+    if (!tagsStr) return [];
+    return tagsStr
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
 }
 
 if (toggleDrawerBtn && composerDrawer) {
@@ -213,6 +237,7 @@ function getRecurringInterval() {
 async function addTask() {
     const title = taskTitleInput.value.trim();
     const description = taskDescriptionInput.value.trim();
+    const tags = taskTagsInput ? taskTagsInput.value.trim() : '';
     const dueDate = dueDateInput.value;
     const recurring = recurringSelect.value || null;
     const recurringInterval = getRecurringInterval();
@@ -236,13 +261,15 @@ async function addTask() {
                 due_date: dueDate || null,
                 recurring: recurring ? 'recurring' : null,
                 recurring_interval: recurringInterval,
-                recurring_end_date: recurringEndDate
+                recurring_end_date: recurringEndDate,
+                tags: tags || null
             })
         });
 
         if (response.ok) {
             taskTitleInput.value = '';
             taskDescriptionInput.value = '';
+            if (taskTagsInput) taskTagsInput.value = '';
             dueDateInput.value = '';
             recurringSelect.value = '';
             customRecurringNumber.value = 1;
@@ -275,6 +302,7 @@ async function loadTasks() {
         const response = await fetch(`/api/tasks?include_past=${includePast}`);
         allTasks = await response.json();
         updateMetrics();
+        updateTagsSidebar();
         renderTasks();
     } catch (error) {
         console.error('Error loading tasks:', error);
@@ -311,7 +339,7 @@ function updateMetrics() {
     }
 }
 
-// Filter tasks based on current filter
+// Filter tasks based on current filter and tag filter
 function getFilteredTasks() {
     let filtered = allTasks;
 
@@ -319,6 +347,14 @@ function getFilteredTasks() {
         filtered = filtered.filter(task => !task.completed);
     } else if (currentFilter === 'completed') {
         filtered = filtered.filter(task => task.completed);
+    }
+
+    if (currentTagFilter) {
+        const target = currentTagFilter.toLowerCase();
+        filtered = filtered.filter(task => {
+            const tags = parseTags(task.tags).map(t => t.toLowerCase());
+            return tags.includes(target);
+        });
     }
 
     return filtered;
@@ -336,7 +372,9 @@ function renderTasks() {
 
     if (filtered.length === 0) {
         let emptyMessage = 'You have no tasks in this view. Use the input above to capture a new task.';
-        if (currentFilter === 'completed') {
+        if (currentTagFilter) {
+            emptyMessage = `No tasks tagged with #${escapeHtml(currentTagFilter)} found in this view.`;
+        } else if (currentFilter === 'completed') {
             emptyMessage = 'No completed tasks yet. Keep moving forward!';
         }
         tasksList.innerHTML = `
@@ -399,6 +437,15 @@ function renderTasks() {
             }
         });
     });
+
+    // Add event listeners for tag chips on task items
+    document.querySelectorAll('.task-item .badge-tag').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const tag = chip.dataset.tag;
+            toggleTagFilter(tag);
+        });
+    });
 }
 
 // Create task element HTML
@@ -426,6 +473,13 @@ function createTaskElement(task) {
     if (task.completed && task.completed_date) {
         metaChips += `<span class="task-meta-chip">${ICONS.check} ${formatDate(new Date(task.completed_date))}</span>`;
     }
+
+    // Render tag chips
+    const tags = parseTags(task.tags);
+    tags.forEach(tag => {
+        const isActive = currentTagFilter && currentTagFilter.toLowerCase() === tag.toLowerCase();
+        metaChips += `<span class="task-meta-chip badge-tag ${isActive ? 'active' : ''}" data-tag="${escapeHtml(tag)}" title="Filter by #${escapeHtml(tag)}">#${escapeHtml(tag)}</span>`;
+    });
 
     let actionsHtml = '';
     if (isCompleted) {
@@ -551,6 +605,9 @@ async function openTaskModal(taskId) {
     document.getElementById('modalTitle').textContent = 'Edit Task';
     document.getElementById('modalTaskTitle').value = task.title;
     document.getElementById('modalTaskDescription').value = task.description || '';
+    if (modalTaskTagsInput) {
+        modalTaskTagsInput.value = task.tags || '';
+    }
     document.getElementById('modalDueDate').value = task.due_date ? formatDateForInput(new Date(task.due_date)) : '';
 
     const recurringInfo = document.getElementById('recurringInfo');
@@ -617,6 +674,7 @@ async function saveTaskChanges() {
 
     const title = document.getElementById('modalTaskTitle').value.trim();
     const description = document.getElementById('modalTaskDescription').value.trim();
+    const tags = modalTaskTagsInput ? modalTaskTagsInput.value.trim() : '';
     const dueDate = document.getElementById('modalDueDate').value;
 
     if (!title) {
@@ -624,7 +682,12 @@ async function saveTaskChanges() {
         return;
     }
 
-    const updateData = { title, description: description || null, due_date: dueDate || null };
+    const updateData = { 
+        title, 
+        description: description || null, 
+        due_date: dueDate || null,
+        tags: tags || null
+    };
     
     // Check if this is a recurring instance
     const task = allTasks.find(t => t.id == currentEditingTaskId);
@@ -732,15 +795,88 @@ function setFilter(e) {
     filterBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    // Update title
+    updateTitle();
+    renderTasks();
+}
+
+// Update title based on view and tag filter
+function updateTitle() {
     const titles = {
         active: 'Active Tasks',
         all: 'All Tasks',
         completed: 'Completed Tasks'
     };
-    tasksTitle.textContent = titles[filter] || 'Tasks';
+    let title = titles[currentFilter] || 'Tasks';
+    if (currentTagFilter) {
+        title += ` • #${currentTagFilter}`;
+    }
+    tasksTitle.textContent = title;
+}
 
+// Toggle tag filter
+function toggleTagFilter(tag) {
+    if (currentTagFilter && currentTagFilter.toLowerCase() === tag.toLowerCase()) {
+        currentTagFilter = null;
+    } else {
+        currentTagFilter = tag;
+    }
+    updateTitle();
     renderTasks();
+    updateTagsSidebar();
+}
+
+// Update tags sidebar list with count of tasks using each tag
+function updateTagsSidebar() {
+    if (!sidebarTagsSection || !tagsList) return;
+
+    const tagCounts = {};
+    allTasks.forEach(task => {
+        const tags = parseTags(task.tags);
+        const uniqueInTask = [...new Set(tags.map(t => t.trim()))];
+        uniqueInTask.forEach(tag => {
+            const key = tag.toLowerCase();
+            if (!tagCounts[key]) {
+                tagCounts[key] = { display: tag, count: 0 };
+            }
+            tagCounts[key].count++;
+        });
+    });
+
+    const tagKeys = Object.keys(tagCounts).sort();
+
+    if (tagKeys.length === 0) {
+        sidebarTagsSection.style.display = 'none';
+        if (currentTagFilter) {
+            currentTagFilter = null;
+            updateTitle();
+        }
+        return;
+    }
+
+    sidebarTagsSection.style.display = 'block';
+    if (clearTagFilterBtn) {
+        clearTagFilterBtn.style.display = currentTagFilter ? 'inline-block' : 'none';
+    }
+
+    tagsList.innerHTML = tagKeys.map(key => {
+        const { display, count } = tagCounts[key];
+        const isActive = currentTagFilter && currentTagFilter.toLowerCase() === key;
+        return `
+            <button type="button" class="sidebar-tag-btn ${isActive ? 'active' : ''}" data-tag="${escapeHtml(display)}" title="Filter tasks by #${escapeHtml(display)}">
+                <span class="nav-btn-content">
+                    <span class="sidebar-tag-hash">#</span>
+                    <span>${escapeHtml(display)}</span>
+                </span>
+                <span class="nav-badge">${count}</span>
+            </button>
+        `;
+    }).join('');
+
+    tagsList.querySelectorAll('.sidebar-tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            toggleTagFilter(btn.dataset.tag);
+        });
+    });
 }
 
 // Delete all completed tasks
