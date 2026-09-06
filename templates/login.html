@@ -10,53 +10,70 @@
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
-                <h1>📋 taskich</h1>
-                <p>Your personal task manager</p>
+                <div class="auth-logo">
+                    <span class="auth-logo-icon">📋</span>
+                    <h1 class="auth-title">taskich</h1>
+                    <p class="auth-subtitle">Your personal task manager</p>
+                </div>
             </div>
-            
+
             <div id="loginSection">
                 <h2>Welcome Back</h2>
                 <form id="loginForm">
-                    <div class="form-group">
-                        <label for="loginUsername">Username</label>
+                    <div class="input-group">
+                        <label for="loginUsername" class="input-label">Username</label>
                         <input type="text" id="loginUsername" class="form-input" required>
                     </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Password</label>
+                    <div class="input-group">
+                        <label for="loginPassword" class="input-label">Password</label>
                         <input type="password" id="loginPassword" class="form-input" required>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-full">Login</button>
+                    <button type="submit" class="btn btn-primary btn-full">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                            <polyline points="10 17 15 12 10 7"></polyline>
+                            <line x1="15" y1="12" x2="3" y2="12"></line>
+                        </svg>
+                        Sign In
+                    </button>
                 </form>
                 <div id="loginError" class="auth-error"></div>
                 <div id="signupToggle" class="auth-toggle">
-                    Don't have an account? <a href="#" id="showSignup">Sign up</a>
+                    Don't have an account? <a href="#" id="showSignup">Create one</a>
                 </div>
             </div>
-            
+
             <div id="signupSection" style="display: none;">
                 <h2>Create Account</h2>
                 <form id="signupForm">
-                    <div class="form-group">
-                        <label for="signupUsername">Username</label>
+                    <div class="input-group">
+                        <label for="signupUsername" class="input-label">Username</label>
                         <input type="text" id="signupUsername" class="form-input" required>
                     </div>
-                    <div class="form-group">
-                        <label for="signupEmail">Email</label>
+                    <div class="input-group">
+                        <label for="signupEmail" class="input-label">Email</label>
                         <input type="email" id="signupEmail" class="form-input" required>
                     </div>
-                    <div class="form-group">
-                        <label for="signupPassword">Password</label>
+                    <div class="input-group">
+                        <label for="signupPassword" class="input-label">Password</label>
                         <input type="password" id="signupPassword" class="form-input" minlength="6" required>
-                        <small class="form-hint">At least 6 characters</small>
+                        <small class="form-hint">Minimum 6 characters</small>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-full">Sign Up</button>
+                    <button type="submit" class="btn btn-primary btn-full">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="8.5" y2="20"></line>
+                        </svg>
+                        Create Account
+                    </button>
                 </form>
                 <div id="signupError" class="auth-error"></div>
                 <div class="auth-toggle">
-                    Already have an account? <a href="#" id="showLogin">Login</a>
+                    Already have an account? <a href="#" id="showLogin">Sign in</a>
                 </div>
             </div>
-            
+
             <div id="signupDisabled" style="display: none;">
                 <div class="auth-notice">
                     <p>Sign ups are currently disabled.</p>
@@ -68,71 +85,95 @@
 
     <script>
         const allowSignups = {{ 'true' if allow_signups else 'false' }};
-        
+
         document.addEventListener('DOMContentLoaded', () => {
-            // Show/hide signup based on ALLOW_SIGNUPS
+            // Add entrance animation
+            const authCard = document.querySelector('.auth-card');
+            if (authCard) {
+                authCard.style.animation = 'slideUpFade 0.5s ease-out';
+            }
+
+            // Handle signups disabled
             if (!allowSignups) {
                 document.getElementById('signupSection').style.display = 'none';
                 document.getElementById('signupToggle').style.display = 'none';
                 document.getElementById('signupDisabled').style.display = 'block';
             }
         });
-        
+
         document.getElementById('showSignup').addEventListener('click', (e) => {
             e.preventDefault();
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('signupSection').style.display = 'block';
+            const loginSection = document.getElementById('loginSection');
+            const signupSection = document.getElementById('signupSection');
+
+            loginSection.style.opacity = '0';
+            setTimeout(() => {
+                loginSection.style.display = 'none';
+                signupSection.style.display = 'block';
+                requestAnimationFrame(() => {
+                    signupSection.style.opacity = '1';
+                });
+            }, 250);
         });
-        
+
         document.getElementById('showLogin').addEventListener('click', (e) => {
             e.preventDefault();
-            document.getElementById('signupSection').style.display = 'none';
-            document.getElementById('loginSection').style.display = 'block';
+            const signupSection = document.getElementById('signupSection');
+            const loginSection = document.getElementById('loginSection');
+
+            signupSection.style.opacity = '0';
+            setTimeout(() => {
+                signupSection.style.display = 'none';
+                loginSection.style.display = 'block';
+                requestAnimationFrame(() => {
+                    loginSection.style.opacity = '1';
+                });
+            }, 250);
         });
-        
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
             const errorDiv = document.getElementById('loginError');
-            
+
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-                
+
                 if (response.ok) {
                     window.location.href = '/';
                 } else {
                     const data = await response.json();
-                    errorDiv.textContent = data.error || 'Login failed';
+                    errorDiv.textContent = data.error || 'Login failed. Please try again.';
                 }
             } catch (err) {
                 errorDiv.textContent = 'Connection error. Please try again.';
             }
         });
-        
+
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('signupUsername').value;
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
             const errorDiv = document.getElementById('signupError');
-            
+
             try {
                 const response = await fetch('/api/auth/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
-                
+
                 if (response.ok) {
                     window.location.href = '/';
                 } else {
                     const data = await response.json();
-                    errorDiv.textContent = data.error || 'Sign up failed';
+                    errorDiv.textContent = data.error || 'Sign up failed. Please try again.';
                 }
             } catch (err) {
                 errorDiv.textContent = 'Connection error. Please try again.';

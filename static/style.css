@@ -242,6 +242,74 @@ body.dark-mode {
     font-weight: 500;
 }
 
+/* Action Buttons in Sidebar - Icon Only */
+.sidebar-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.action-btn-icon {
+    background: transparent;
+    border: none;
+    padding: 0.75rem;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease-out;
+}
+
+.action-btn-icon:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 59, 48, 0.08);
+}
+
+.dark-mode-toggle:hover {
+    background-color: rgba(90, 200, 250, 0.08);
+}
+
+/* User Status Section - Visible at Top */
+.user-section {
+    padding-top: 1rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: auto; /* Pushes filters to bottom */
+}
+
+.user-status-text {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: var(--success-color);
+    box-shadow: 0 0 10px rgba(52, 199, 89, 0.4);
+}
+
+.logged-in-text {
+    color: var(--success-color);
+}
+
+/* Active Tasks Link in Header */
+.active-tasks-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
 .main {
     flex: 1;
     display: flex;
@@ -727,53 +795,22 @@ body.dark-mode {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .header {
+    /* Active tasks link becomes full width button */
+    .header a.active-tasks-link {
+        display: block;
         padding: 1rem;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
     }
 
-    .header-content {
-        flex-direction: column;
-        gap: 1rem;
+    .sidebar-actions {
+        display: none; /* Hidden on mobile, use top header */
     }
 
-    .header-title {
-        text-align: center;
-    }
-
-    .header h1 {
-        font-size: 1.75rem;
-        margin-bottom: 0.25rem;
-    }
-
-    .header p {
-        font-size: 0.9rem;
-    }
-
-    .header-actions {
-        flex-direction: column;
-        width: 100%;
-        gap: 0.5rem;
-    }
-
-    .username-display {
-        margin-right: 0;
-        margin-bottom: 0.25rem;
-    }
-
-    .dark-mode-toggle,
-    .logout-btn {
-        width: 100%;
-    }
-
-    .content {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        padding: 0.75rem;
+    .user-section {
+        padding: 0.75rem 0;
+        margin-bottom: auto;
+        border-bottom: none;
     }
 
     .filters {
@@ -788,92 +825,7 @@ body.dark-mode {
         padding: 0.5rem 0.75rem;
         font-size: 0.85rem;
     }
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .task-input-section {
-        padding: 1rem;
-    }
-
-    .task-input-title {
-        font-size: 1rem;
-        padding: 0.75rem;
-    }
-
-    .task-input-description {
-        font-size: 0.9rem;
-        rows: 2;
-    }
-
-    .task-meta {
-        flex-direction: column;
-        gap: 0.25rem;
-        font-size: 0.8rem;
-    }
-
-    .task-item {
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .task-header {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .task-title {
-        font-size: 1rem;
-    }
-
-    .task-description {
-        font-size: 0.9rem;
-    }
-
-    .task-actions {
-        flex-wrap: wrap;
-        gap: 0.3rem;
-    }
-
-    .task-actions button {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.75rem;
-        flex: 1;
-        min-width: 60px;
-    }
-
-    .modal-content {
-        width: 95%;
-        max-height: 80vh;
-    }
-
-    .tasks-header {
-        padding: 1rem;
-    }
-
-    .tasks-header h2 {
-        font-size: 1.25rem;
-    }
-
-    .task-count {
-        font-size: 0.8rem;
-    }
-
-    .btn {
-        width: 100%;
-    }
-
-    .modal-footer {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .modal-footer .btn {
-        width: 100%;
-    }
 }
-
 @media (max-width: 480px) {
     .header h1 {
         font-size: 1.5rem;
