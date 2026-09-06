@@ -3,6 +3,7 @@ from functools import wraps
 from datetime import datetime, timedelta
 import database
 import os
+import psycopg2
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
@@ -15,8 +16,27 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=int(os.getenv('SESSION
 # Check if signups are allowed
 ALLOW_SIGNUPS = os.getenv('ALLOW_SIGNUPS', 'false').lower() == 'true'
 
-# Initialize database on startup
-database.init_db()
+import time
+# Initialize database on startup (with retry for PostgreSQL readiness)
+for i in range(30):
+    try:
+        if database.IS_POSTGRESQL and DATABASE_URL.startswith('postgresql://'):
+            conn = psycopg2.connect(DATABASE_URL, connect_timeout=1)
+            conn.close()
+            break
+        else:
+            database.init_db()
+            break
+    except psycopg2.OperationalError:
+        time.sleep(0.5)
+    except Exception:
+        if not database.IS_POSTGRESQL:
+            database.init_db()
+            break
+        time.sleep(0.5)
+else:
+    # Fallback for SQLite or if connection succeeds
+    database.init_db()
 
 @app.route('/health')
 def health():
