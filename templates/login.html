@@ -3,99 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>taskich - Login</title>
+    <title>taskich — Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="auth-body">
+    <!-- Ambient background glow elements -->
+    <div class="auth-ambient-glow auth-glow-1"></div>
+    <div class="auth-ambient-glow auth-glow-2"></div>
+
     <div class="auth-container">
         <div class="auth-card">
+            <!-- Brand Logo & Header -->
             <div class="auth-header">
-                <h1>📋 taskich</h1>
-                <p>Your personal task manager</p>
+                <div class="brand-badge">
+                    <div class="brand-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m9 11 3 3L22 4"></path>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                    </div>
+                    <span class="brand-pill">v2.0</span>
+                </div>
+                <h1 class="brand-title">taskich</h1>
+                <p class="brand-subtitle">Streamlined task management for high-focus work</p>
             </div>
-            
-            <div id="loginSection">
-                <h2>Welcome Back</h2>
-                <form id="loginForm">
+
+            <!-- Segmented Tab Switch -->
+            <div class="auth-tabs" id="authTabs">
+                <button type="button" class="auth-tab-btn active" id="tabLoginBtn">Sign In</button>
+                <button type="button" class="auth-tab-btn" id="tabSignupBtn">Create Account</button>
+                <div class="auth-tab-slider"></div>
+            </div>
+
+            <!-- Login Section -->
+            <div id="loginSection" class="auth-form-wrapper active-section">
+                <form id="loginForm" class="auth-form" autocomplete="on">
                     <div class="form-group">
-                        <label for="loginUsername">Username</label>
-                        <input type="text" id="loginUsername" class="form-input" required>
+                        <label for="loginUsername" class="form-label">Username</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </span>
+                            <input 
+                                type="text" 
+                                id="loginUsername" 
+                                class="form-input" 
+                                placeholder="Enter your username" 
+                                required 
+                                autocomplete="username"
+                            >
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" class="form-input" required>
+                        <div class="form-label-row">
+                            <label for="loginPassword" class="form-label">Password</label>
+                        </div>
+                        <div class="input-with-icon">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                            <input 
+                                type="password" 
+                                id="loginPassword" 
+                                class="form-input" 
+                                placeholder="Enter your password" 
+                                required 
+                                autocomplete="current-password"
+                            >
+                            <button type="button" class="password-toggle" title="Toggle password visibility" data-target="loginPassword">
+                                <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                                    <path d="m9.88 9.88 4.24 4.24"></path>
+                                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                                    <line x1="2" x2="22" y1="2" y2="22"></line>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-full">Login</button>
+
+                    <div id="loginError" class="auth-error"></div>
+
+                    <button type="submit" class="btn btn-primary btn-full btn-submit" id="loginSubmitBtn">
+                        <span>Sign In</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14"></path>
+                            <path d="m12 5 7 7-7 7"></path>
+                        </svg>
+                    </button>
                 </form>
-                <div id="loginError" class="auth-error"></div>
-                <div id="signupToggle" class="auth-toggle">
-                    Don't have an account? <a href="#" id="showSignup">Sign up</a>
+
+                <div id="signupToggle" class="auth-footer-prompt">
+                    <span>Don't have an account?</span>
+                    <a href="#" id="showSignup">Create one now</a>
                 </div>
             </div>
-            
-            <div id="signupSection" style="display: none;">
-                <h2>Create Account</h2>
-                <form id="signupForm">
+
+            <!-- Sign Up Section -->
+            <div id="signupSection" class="auth-form-wrapper" style="display: none;">
+                <form id="signupForm" class="auth-form" autocomplete="on">
                     <div class="form-group">
-                        <label for="signupUsername">Username</label>
-                        <input type="text" id="signupUsername" class="form-input" required>
+                        <label for="signupUsername" class="form-label">Username</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </span>
+                            <input 
+                                type="text" 
+                                id="signupUsername" 
+                                class="form-input" 
+                                placeholder="Choose a username" 
+                                required 
+                                autocomplete="username"
+                            >
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label for="signupEmail">Email</label>
-                        <input type="email" id="signupEmail" class="form-input" required>
+                        <label for="signupEmail" class="form-label">Email</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                                </svg>
+                            </span>
+                            <input 
+                                type="email" 
+                                id="signupEmail" 
+                                class="form-input" 
+                                placeholder="you@example.com" 
+                                required 
+                                autocomplete="email"
+                            >
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label for="signupPassword">Password</label>
-                        <input type="password" id="signupPassword" class="form-input" minlength="6" required>
-                        <small class="form-hint">At least 6 characters</small>
+                        <label for="signupPassword" class="form-label">Password</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                            <input 
+                                type="password" 
+                                id="signupPassword" 
+                                class="form-input" 
+                                placeholder="At least 6 characters" 
+                                minlength="6" 
+                                required 
+                                autocomplete="new-password"
+                            >
+                            <button type="button" class="password-toggle" title="Toggle password visibility" data-target="signupPassword">
+                                <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                                    <path d="m9.88 9.88 4.24 4.24"></path>
+                                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                                    <line x1="2" x2="22" y1="2" y2="22"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <span class="form-hint">Must contain at least 6 characters</span>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-full">Sign Up</button>
+
+                    <div id="signupError" class="auth-error"></div>
+
+                    <button type="submit" class="btn btn-primary btn-full btn-submit" id="signupSubmitBtn">
+                        <span>Create Account</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14"></path>
+                            <path d="m12 5 7 7-7 7"></path>
+                        </svg>
+                    </button>
                 </form>
-                <div id="signupError" class="auth-error"></div>
-                <div class="auth-toggle">
-                    Already have an account? <a href="#" id="showLogin">Login</a>
+
+                <div class="auth-footer-prompt">
+                    <span>Already have an account?</span>
+                    <a href="#" id="showLogin">Sign in instead</a>
                 </div>
             </div>
-            
-            <div id="signupDisabled" style="display: none;">
-                <div class="auth-notice">
-                    <p>Sign ups are currently disabled.</p>
-                    <p>Please contact the administrator.</p>
+
+            <!-- Sign Up Disabled Notice -->
+            <div id="signupDisabled" class="auth-notice" style="display: none;">
+                <div class="notice-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
                 </div>
+                <h3>Sign ups currently closed</h3>
+                <p>Public registrations are disabled on this instance. Please contact the administrator for access.</p>
             </div>
         </div>
+
+        <footer class="auth-footer-meta">
+            <span>taskich &copy; 2026</span> &bull; <span>Focused productivity</span>
+        </footer>
     </div>
 
     <script>
         const allowSignups = {{ 'true' if allow_signups else 'false' }};
+        const loginSection = document.getElementById('loginSection');
+        const signupSection = document.getElementById('signupSection');
+        const tabLoginBtn = document.getElementById('tabLoginBtn');
+        const tabSignupBtn = document.getElementById('tabSignupBtn');
+        const authTabs = document.getElementById('authTabs');
         
+        function switchToTab(tab) {
+            if (tab === 'signup' && allowSignups) {
+                loginSection.style.display = 'none';
+                loginSection.classList.remove('active-section');
+                signupSection.style.display = 'block';
+                signupSection.classList.add('active-section');
+                tabLoginBtn.classList.remove('active');
+                tabSignupBtn.classList.add('active');
+                authTabs.classList.add('tab-right');
+                document.getElementById('signupUsername').focus();
+            } else {
+                signupSection.style.display = 'none';
+                signupSection.classList.remove('active-section');
+                loginSection.style.display = 'block';
+                loginSection.classList.add('active-section');
+                tabSignupBtn.classList.remove('active');
+                tabLoginBtn.classList.add('active');
+                authTabs.classList.remove('tab-right');
+                document.getElementById('loginUsername').focus();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            // Show/hide signup based on ALLOW_SIGNUPS
+            // Check system dark mode preference or stored dark mode
+            if (localStorage.getItem('darkMode') === 'true' || 
+               (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.classList.add('dark-mode');
+            }
+
             if (!allowSignups) {
-                document.getElementById('signupSection').style.display = 'none';
-                document.getElementById('signupToggle').style.display = 'none';
-                document.getElementById('signupDisabled').style.display = 'block';
+                if (signupSection) signupSection.style.display = 'none';
+                if (tabSignupBtn) tabSignupBtn.style.display = 'none';
+                const signupToggle = document.getElementById('signupToggle');
+                if (signupToggle) signupToggle.style.display = 'none';
+                const signupDisabled = document.getElementById('signupDisabled');
+                if (signupDisabled) signupDisabled.style.display = 'block';
             }
         });
+
+        // Tab and link listeners
+        tabLoginBtn.addEventListener('click', () => switchToTab('login'));
+        tabSignupBtn.addEventListener('click', () => switchToTab('signup'));
         
-        document.getElementById('showSignup').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('signupSection').style.display = 'block';
+        const showSignupLink = document.getElementById('showSignup');
+        if (showSignupLink) {
+            showSignupLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchToTab('signup');
+            });
+        }
+        
+        const showLoginLink = document.getElementById('showLogin');
+        if (showLoginLink) {
+            showLoginLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchToTab('login');
+            });
+        }
+
+        // Password visibility toggle
+        document.querySelectorAll('.password-toggle').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.dataset.target;
+                const input = document.getElementById(targetId);
+                const eyeOpen = button.querySelector('.eye-open');
+                const eyeClosed = button.querySelector('.eye-closed');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    eyeOpen.style.display = 'none';
+                    eyeClosed.style.display = 'block';
+                } else {
+                    input.type = 'password';
+                    eyeOpen.style.display = 'block';
+                    eyeClosed.style.display = 'none';
+                }
+            });
         });
-        
-        document.getElementById('showLogin').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('signupSection').style.display = 'none';
-            document.getElementById('loginSection').style.display = 'block';
-        });
-        
+
+        // Login submission
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
+            const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
             const errorDiv = document.getElementById('loginError');
+            const submitBtn = document.getElementById('loginSubmitBtn');
             
+            errorDiv.textContent = '';
+            errorDiv.classList.remove('show');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
@@ -107,20 +336,34 @@
                     window.location.href = '/';
                 } else {
                     const data = await response.json();
-                    errorDiv.textContent = data.error || 'Login failed';
+                    errorDiv.textContent = data.error || 'Invalid credentials. Please try again.';
+                    errorDiv.classList.add('show');
+                    triggerShake(errorDiv);
                 }
             } catch (err) {
-                errorDiv.textContent = 'Connection error. Please try again.';
+                errorDiv.textContent = 'Connection error. Please check your network and try again.';
+                errorDiv.classList.add('show');
+                triggerShake(errorDiv);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
             }
         });
-        
+
+        // Sign up submission
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('signupUsername').value;
-            const email = document.getElementById('signupEmail').value;
+            const username = document.getElementById('signupUsername').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
             const errorDiv = document.getElementById('signupError');
+            const submitBtn = document.getElementById('signupSubmitBtn');
             
+            errorDiv.textContent = '';
+            errorDiv.classList.remove('show');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+
             try {
                 const response = await fetch('/api/auth/signup', {
                     method: 'POST',
@@ -132,12 +375,25 @@
                     window.location.href = '/';
                 } else {
                     const data = await response.json();
-                    errorDiv.textContent = data.error || 'Sign up failed';
+                    errorDiv.textContent = data.error || 'Failed to create account. Please try again.';
+                    errorDiv.classList.add('show');
+                    triggerShake(errorDiv);
                 }
             } catch (err) {
-                errorDiv.textContent = 'Connection error. Please try again.';
+                errorDiv.textContent = 'Connection error. Please check your network and try again.';
+                errorDiv.classList.add('show');
+                triggerShake(errorDiv);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
             }
         });
+
+        function triggerShake(element) {
+            element.classList.remove('shake');
+            void element.offsetWidth; // Force reflow
+            element.classList.add('shake');
+        }
     </script>
 </body>
 </html>

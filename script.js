@@ -38,6 +38,18 @@ const deleteAllCompletedBtn = document.getElementById('deleteAllCompletedBtn');
 const warningConfirmBtn = document.getElementById('warningConfirmBtn');
 const warningCancelBtn = document.getElementById('warningCancelBtn');
 const warningMessage = document.getElementById('warningMessage');
+const toggleDrawerBtn = document.getElementById('toggleDrawerBtn');
+const composerDrawer = document.getElementById('composerDrawer');
+
+// SVG Icon Helpers for Dynamic Content
+const ICONS = {
+    calendar: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`,
+    repeat: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path></svg>`,
+    alert: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
+    edit: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>`,
+    trash: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>`,
+    check: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+};
 
 // Logout function
 async function logout() {
@@ -88,9 +100,35 @@ logoutBtn.addEventListener('click', logout);
 scopeThisOnly.addEventListener('click', () => handleScopeChoice('this_only'));
 scopeAllFollowing.addEventListener('click', () => handleScopeChoice('all_following'));
 scopeCancel.addEventListener('click', closeScopeModal);
+
 if (deleteAllCompletedBtn) {
     deleteAllCompletedBtn.addEventListener('click', deleteAllCompleted);
 }
+
+if (toggleDrawerBtn && composerDrawer) {
+    toggleDrawerBtn.addEventListener('click', () => {
+        const isOpen = composerDrawer.classList.toggle('open');
+        toggleDrawerBtn.classList.toggle('active', isOpen);
+    });
+}
+
+// Keyboard shortcuts
+if (taskTitleInput) {
+    taskTitleInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            addTask();
+        }
+    });
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (warningModal.classList.contains('active')) closeWarning(false);
+        else if (scopeModal.classList.contains('active')) closeScopeModal();
+        else if (modal.classList.contains('active')) closeModal();
+    }
+});
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -107,7 +145,7 @@ async function loadUsername() {
         if (response.ok) {
             const data = await response.json();
             if (data.authenticated && usernameDisplay) {
-                usernameDisplay.textContent = `👤 ${data.username}`;
+                usernameDisplay.textContent = data.username;
             }
         }
     } catch (error) {
@@ -117,11 +155,12 @@ async function loadUsername() {
 
 // Dark mode functions
 function initializeDarkMode() {
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    const isDarkMode = localStorage.getItem('darkMode') === 'true' || 
+                       (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
     if (isDarkMode) {
         document.body.classList.add('dark-mode');
-        updateDarkModeToggle(true);
     }
+    updateDarkModeToggle(isDarkMode);
 }
 
 function toggleDarkMode() {
@@ -131,7 +170,12 @@ function toggleDarkMode() {
 }
 
 function updateDarkModeToggle(isDarkMode) {
-    darkModeToggle.textContent = isDarkMode ? '☀️ Light' : '🌙 Dark';
+    const moonIcon = darkModeToggle.querySelector('.theme-icon-moon');
+    const sunIcon = darkModeToggle.querySelector('.theme-icon-sun');
+    if (moonIcon && sunIcon) {
+        moonIcon.style.display = isDarkMode ? 'none' : 'block';
+        sunIcon.style.display = isDarkMode ? 'block' : 'none';
+    }
 }
 
 // Toggle recurring options
@@ -139,7 +183,7 @@ function toggleRecurringOptions() {
     const isRecurring = recurringSelect.value !== '';
     const isCustom = recurringSelect.value === 'custom';
     
-    recurringEndDateGroup.style.display = isRecurring ? 'grid' : 'none';
+    recurringEndDateGroup.style.display = isRecurring ? 'block' : 'none';
     customRecurringGroup.style.display = isCustom ? 'grid' : 'none';
 }
 
@@ -176,6 +220,7 @@ async function addTask() {
 
     if (!title) {
         await showWarning('Please enter a task title');
+        taskTitleInput.focus();
         return;
     }
 
@@ -206,6 +251,13 @@ async function addTask() {
             recurringUndefinedCheckbox.checked = false;
             recurringEndDateGroup.style.display = 'none';
             customRecurringGroup.style.display = 'none';
+            
+            // Close drawer after adding
+            if (composerDrawer && composerDrawer.classList.contains('open')) {
+                composerDrawer.classList.remove('open');
+                if (toggleDrawerBtn) toggleDrawerBtn.classList.remove('active');
+            }
+
             loadTasks();
         } else {
             await showWarning('Failed to create task');
@@ -222,9 +274,40 @@ async function loadTasks() {
         const includePast = currentFilter === 'all';
         const response = await fetch(`/api/tasks?include_past=${includePast}`);
         allTasks = await response.json();
+        updateMetrics();
         renderTasks();
     } catch (error) {
         console.error('Error loading tasks:', error);
+    }
+}
+
+// Update sidebar badge metrics and productivity bar
+function updateMetrics() {
+    const activeTasks = allTasks.filter(t => !t.completed);
+    const completedTasks = allTasks.filter(t => t.completed);
+    
+    const activeBadge = document.getElementById('activeBadge');
+    const allBadge = document.getElementById('allBadge');
+    const completedBadge = document.getElementById('completedBadge');
+    
+    if (activeBadge) activeBadge.textContent = activeTasks.length;
+    if (allBadge) allBadge.textContent = allTasks.length;
+    if (completedBadge) completedBadge.textContent = completedTasks.length;
+
+    const total = activeTasks.length + completedTasks.length;
+    const percent = total > 0 ? Math.round((completedTasks.length / total) * 100) : 0;
+    
+    const progressBar = document.getElementById('progressBar');
+    const productivityPercent = document.getElementById('productivityPercent');
+    const productivityCaption = document.getElementById('productivityCaption');
+
+    if (progressBar) progressBar.style.width = `${percent}%`;
+    if (productivityPercent) productivityPercent.textContent = `${percent}%`;
+    if (productivityCaption) {
+        if (percent === 100 && total > 0) productivityCaption.textContent = 'All tasks finished! 🎉';
+        else if (percent >= 50) productivityCaption.textContent = 'More than halfway done! ⚡';
+        else if (total === 0) productivityCaption.textContent = 'No tasks active';
+        else productivityCaption.textContent = `${activeTasks.length} tasks remaining`;
     }
 }
 
@@ -248,11 +331,27 @@ function renderTasks() {
 
     // Show delete all completed button only when viewing completed tasks
     if (deleteAllCompletedBtn) {
-        deleteAllCompletedBtn.style.display = currentFilter === 'completed' && filtered.length > 0 ? 'block' : 'none';
+        deleteAllCompletedBtn.style.display = currentFilter === 'completed' && filtered.length > 0 ? 'inline-flex' : 'none';
     }
 
     if (filtered.length === 0) {
-        tasksList.innerHTML = '<div class="empty-state"><p>No tasks yet. Add one to get started! 🚀</p></div>';
+        let emptyMessage = 'You have no tasks in this view. Use the input above to capture a new task.';
+        if (currentFilter === 'completed') {
+            emptyMessage = 'No completed tasks yet. Keep moving forward!';
+        }
+        tasksList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect>
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                        <path d="m9 14 2 2 4-4"></path>
+                    </svg>
+                </div>
+                <h3>All clear for now</h3>
+                <p>${emptyMessage}</p>
+            </div>
+        `;
         return;
     }
 
@@ -314,27 +413,38 @@ function createTaskElement(task) {
         dueDateStr = formatDate(dueDate);
     }
 
-    let badges = '';
+    let metaChips = '';
+    if (dueDateStr) {
+        metaChips += `<span class="task-meta-chip">${ICONS.calendar} ${dueDateStr}</span>`;
+    }
     if (task.recurring) {
-        badges += `<span class="task-badge badge-recurring">🔄 ${formatRecurringInterval(task.recurring_interval)}</span>`;
+        metaChips += `<span class="task-meta-chip badge-recurring">${ICONS.repeat} ${escapeHtml(formatRecurringInterval(task.recurring_interval))}</span>`;
     }
     if (isOverdue) {
-        badges += `<span class="task-badge badge-overdue">⚠️ Overdue</span>`;
+        metaChips += `<span class="task-meta-chip badge-overdue">${ICONS.alert} Overdue</span>`;
+    }
+    if (task.completed && task.completed_date) {
+        metaChips += `<span class="task-meta-chip">${ICONS.check} ${formatDate(new Date(task.completed_date))}</span>`;
     }
 
-    // For completed tasks, show a simple delete icon instead of edit/delete buttons
     let actionsHtml = '';
     if (isCompleted) {
         actionsHtml = `
             <div class="task-actions">
-                <button class="action-delete-icon" title="Delete completed task">🗑️</button>
+                <button class="task-action-btn action-delete-icon" title="Delete completed task">
+                    ${ICONS.trash}
+                </button>
             </div>
         `;
     } else {
         actionsHtml = `
             <div class="task-actions">
-                <button class="action-edit">Edit</button>
-                <button class="action-delete">Delete</button>
+                <button class="task-action-btn action-edit" title="Edit task">
+                    ${ICONS.edit}
+                </button>
+                <button class="task-action-btn action-delete" title="Delete task">
+                    ${ICONS.trash}
+                </button>
             </div>
         `;
     }
@@ -342,23 +452,18 @@ function createTaskElement(task) {
     return `
         <div class="task-item ${isCompleted ? 'completed' : ''} ${isOverdue ? 'overdue' : ''}" data-task-id="${task.id}">
             <div class="task-header">
-                <div style="display: flex; align-items: center; flex: 1;">
-                    <input type="checkbox" class="task-checkbox" ${isCompleted ? 'checked' : ''}>
+                <div style="display: flex; align-items: flex-start; gap: 0.75rem; flex: 1;">
+                    <div class="task-checkbox-wrap">
+                        <input type="checkbox" class="task-checkbox" ${isCompleted ? 'checked' : ''} aria-label="Mark task complete">
+                    </div>
                     <div class="task-title">${escapeHtml(task.title)}</div>
                 </div>
+                ${actionsHtml}
             </div>
             
             ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
             
-            <div class="task-meta">
-                ${dueDateStr ? `<div class="task-meta-item">📅 Due: ${dueDateStr}</div>` : ''}
-                ${task.created_date ? `<div class="task-meta-item">📝 Created: ${formatDate(new Date(task.created_date))}</div>` : ''}
-                ${task.completed && task.completed_date ? `<div class="task-meta-item">✓ Completed: ${formatDate(new Date(task.completed_date))}</div>` : ''}
-            </div>
-            
-            ${badges ? `<div>${badges}</div>` : ''}
-            
-            ${actionsHtml}
+            ${metaChips ? `<div class="task-meta">${metaChips}</div>` : ''}
         </div>
     `;
 }
@@ -619,19 +724,21 @@ async function performDelete(data, scope, taskId = null) {
 
 // Set filter
 function setFilter(e) {
-    const filter = e.target.dataset.filter;
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    const filter = btn.dataset.filter;
     currentFilter = filter;
 
-    filterBtns.forEach(btn => btn.classList.remove('active'));
-    e.target.classList.add('active');
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
     // Update title
     const titles = {
-        active: '📌 Active Tasks',
-        all: '📚 All Tasks',
-        completed: '✓ Completed'
+        active: 'Active Tasks',
+        all: 'All Tasks',
+        completed: 'Completed Tasks'
     };
-    tasksTitle.textContent = titles[filter];
+    tasksTitle.textContent = titles[filter] || 'Tasks';
 
     renderTasks();
 }
@@ -669,3 +776,4 @@ scopeModal.addEventListener('click', (e) => {
         closeScopeModal();
     }
 });
+
