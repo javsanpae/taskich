@@ -9,44 +9,23 @@
 <body>
     <div class="container">
         <header class="header">
-            <a href="/tasks" class="active-tasks-link">📋 taskich</a>
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>📋 taskich</h1>
+                    <p>Your personal task manager</p>
+                </div>
+                <div class="header-actions">
+                    <span id="usernameDisplay" class="username-display"></span>
+                    <button id="logoutBtn" class="btn btn-secondary logout-btn">Logout</button>
+                    <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle dark mode">
+                        🌙 Dark
+                    </button>
+                </div>
+            </div>
         </header>
 
         <div class="content">
             <aside class="sidebar">
-                <!-- Action Buttons at Top -->
-                <div class="sidebar-actions">
-                    <button id="logoutBtn" class="btn btn-secondary logout-btn action-btn-icon" title="Logout">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                    </button>
-                    <button id="darkModeToggle" class="dark-mode-toggle action-btn-icon" title="Toggle dark mode">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="5"></circle>
-                            <line x1="12" y1="1" x2="12" y2="3"></line>
-                            <line x1="12" y1="21" x2="12" y2="23"></line>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                            <line x1="1" y1="12" x2="3" y2="12"></line>
-                            <line x1="21" y1="12" x2="23" y2="12"></line>
-                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- User Status Section -->
-                <div class="user-section">
-                    <div id="usernameDisplay" class="user-status-text">
-                        <span class="status-dot"></span>
-                        <span class="logged-in-text">Logged in</span>
-                    </div>
-                </div>
-
-                <!-- Filters -->
                 <div class="filters">
                     <h3>Filters</h3>
                     <button class="filter-btn active" data-filter="active">
