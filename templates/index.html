@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>taskich - Tasks</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>📋 taskich</h1>
+                    <p>Your personal task manager</p>
+                </div>
+                <div class="header-actions">
+                    <span id="usernameDisplay" class="username-display"></span>
+                    <button id="logoutBtn" class="btn btn-secondary logout-btn">Logout</button>
+                    <button id="darkModeToggle" class="dark-mode-toggle" title="Toggle dark mode">
+                        🌙 Dark
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <aside class="sidebar">
+                <div class="filters">
+                    <h3>Filters</h3>
+                    <button class="filter-btn active" data-filter="active">
+                        📌 Active Tasks
+                    </button>
+                    <button class="filter-btn" data-filter="all">
+                        📚 All Tasks
+                    </button>
+                    <button class="filter-btn" data-filter="completed">
+                        ✓ Completed
+                    </button>
+                </div>
+            </aside>
+
+            <main class="main">
+                <div class="task-input-section">
+                    <div class="form-group">
+                        <input 
+                            type="text" 
+                            id="taskTitle" 
+                            placeholder="Add a new task..."
+                            class="task-input-title"
+                        >
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <textarea 
+                                id="taskDescription" 
+                                placeholder="Task description (optional)"
+                                class="task-input-description"
+                                rows="2"
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dueDate">Due Date:</label>
+                            <input type="datetime-local" id="dueDate" class="form-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="recurring">Recurring:</label>
+                            <select id="recurring" class="form-input">
+                                <option value="">None</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row" id="customRecurringGroup" style="display: none;">
+                        <div class="form-group">
+                            <label for="customRecurringNumber">Every:</label>
+                            <input type="number" id="customRecurringNumber" class="form-input" min="1" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="customRecurringUnit">Unit:</label>
+                            <select id="customRecurringUnit" class="form-input">
+                                <option value="days">Day(s)</option>
+                                <option value="weeks">Week(s)</option>
+                                <option value="months">Month(s)</option>
+                                <option value="years">Year(s)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row" id="recurringEndDateGroup" style="display: none;">
+                        <div class="form-group">
+                            <label for="recurringEndDate">Recurring Until:</label>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <input type="datetime-local" id="recurringEndDate" class="form-input" style="flex: 1;">
+                                <label style="display: flex; align-items: center; gap: 0.3rem; white-space: nowrap; margin: 0;">
+                                    <input type="checkbox" id="recurringUndefined">
+                                    Undefined
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="addTaskBtn" class="btn btn-primary">Add Task</button>
+                </div>
+
+                <div class="tasks-section">
+                    <div class="tasks-header">
+                        <div>
+                            <h2 id="tasksTitle">Active Tasks</h2>
+                        </div>
+                        <div class="tasks-header-actions">
+                            <span id="taskCount" class="task-count">0</span>
+                            <button id="deleteAllCompletedBtn" class="btn btn-danger btn-small" style="display: none;">
+                                🗑️ Delete All Completed
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="tasksList" class="tasks-list">
+                        <div class="empty-state">
+                            <p>No tasks yet. Add one to get started! 🚀</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Task Details</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="modalTaskTitle" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea id="modalTaskDescription" class="form-input" rows="4"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Due Date:</label>
+                    <input type="datetime-local" id="modalDueDate" class="form-input">
+                </div>
+
+                <div class="recurring-info" id="recurringInfo" style="display: none;">
+                    <p><strong>Type:</strong> <span id="recurringType"></span></p>
+                    <p id="recurringEndInfo"></p>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="saveTaskBtn" class="btn btn-primary">Save Changes</button>
+                <button id="deleteTaskBtn" class="btn btn-danger">Delete Task</button>
+                <button class="btn btn-secondary close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scope Choice Modal -->
+    <div id="scopeModal" class="modal">
+        <div class="modal-content modal-scope">
+            <div class="modal-header">
+                <h2 id="scopeTitle">Apply Changes</h2>
+            </div>
+            
+            <div class="modal-body">
+                <p id="scopeMessage">How should this change be applied?</p>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="scopeThisOnly" class="btn btn-primary">This Task Only</button>
+                <button id="scopeAllFollowing" class="btn btn-secondary">This & Following</button>
+                <button id="scopeCancel" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Warning/Confirmation Modal -->
+    <div id="warningModal" class="modal warning-modal">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p id="warningMessage"></p>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="warningConfirmBtn" class="btn btn-primary">Confirm</button>
+                <button id="warningCancelBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
