@@ -1,17 +1,17 @@
 services:
   # Optional: PostgreSQL database (comment out DATABASE_URL in taskich if not using)
-  # postgres:
-  #   image: postgres:15-alpine
-  #   container_name: taskich_postgres
-  #   restart: unless-stopped
-  #   environment:
-  #     POSTGRES_DB: taskich
-  #     POSTGRES_USER: taskich
-  #     POSTGRES_PASSWORD: taskich_password
-  #   volumes:
-  #     - taskich_postgres_data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
+  postgres:
+    image: postgres:15-alpine
+    container_name: taskich_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: taskich
+      POSTGRES_USER: taskich
+      POSTGRES_PASSWORD: taskich_password
+    volumes:
+      - taskich_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   taskich:
     build:
@@ -28,11 +28,11 @@ services:
       - ALLOW_SIGNUPS=true
       - SECRET_KEY=${SECRET_KEY:-changeme-in-production}
       # Uncomment and configure for PostgreSQL:
-      # - DATABASE_URL=postgresql://taskich:taskich_password@postgres:5432/taskich
+      - DATABASE_URL=postgresql://taskich:taskich_password@postgres:5432/taskich
       # For SQLite (default):
-      - DATABASE_URL=sqlite:////app/data/tasks.db
-    # depends_on:
-    #   - postgres
+      # - DATABASE_URL=sqlite:////app/data/tasks.db
+    depends_on:
+      - postgres
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/health"]
       interval: 30s
@@ -43,5 +43,5 @@ services:
 volumes:
   taskich_data:
     driver: local
-  # taskich_postgres_data:
-  #   driver: local
+  taskich_postgres_data:
+    driver: local

@@ -45,9 +45,7 @@ def init_db():
     c = conn.cursor()
     
     if IS_POSTGRESQL:
-        # PostgreSQL version
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS users (
+        c.execute('''CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(100) UNIQUE NOT NULL,
                 email VARCHAR(255) UNIQUE NOT NULL,
@@ -56,8 +54,7 @@ def init_db():
             )
         ''')
 
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS tasks (
+        c.execute('''CREATE TABLE IF NOT EXISTS tasks (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 title VARCHAR(255) NOT NULL,
@@ -75,8 +72,7 @@ def init_db():
             )
         ''')
         
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS recurring_history (
+        c.execute('''CREATE TABLE IF NOT EXISTS recurring_history (
                 id SERIAL PRIMARY KEY,
                 task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
                 occurrence_date TIMESTAMP NOT NULL,
@@ -84,9 +80,7 @@ def init_db():
             )
         ''')
     else:
-        # SQLite version
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS users (
+        c.execute('''CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
@@ -95,8 +89,7 @@ def init_db():
             )
         ''')
 
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS tasks (
+        c.execute('''CREATE TABLE IF NOT EXISTS tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
                 title TEXT NOT NULL,
@@ -116,8 +109,7 @@ def init_db():
             )
         ''')
         
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS recurring_history (
+        c.execute('''CREATE TABLE IF NOT EXISTS recurring_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 task_id INTEGER NOT NULL,
                 occurrence_date TIMESTAMP NOT NULL,
@@ -126,12 +118,6 @@ def init_db():
             )
         ''')
     
-    # Non-destructive migration check for existing databases
-    try:
-        c.execute("ALTER TABLE tasks ADD COLUMN tags TEXT")
-    except Exception:
-        pass
-
     conn.commit()
     c.close()
     conn.close()

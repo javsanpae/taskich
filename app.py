@@ -18,25 +18,31 @@ ALLOW_SIGNUPS = os.getenv('ALLOW_SIGNUPS', 'false').lower() == 'true'
 
 import time
 # Initialize database on startup (with retry for PostgreSQL readiness)
-for i in range(30):
+last_err = None
+for i in range(60):
     try:
-        if database.IS_POSTGRESQL and DATABASE_URL.startswith('postgresql://'):
-            conn = psycopg2.connect(DATABASE_URL, connect_timeout=1)
+        if database.IS_POSTGRESQL and database.DATABASE_URL.startswith('postgresql://'):
+            conn = psycopg2.connect(database.DATABASE_URL, connect_timeout=2)
             conn.close()
+            database.init_db()
+            print(f"[init_db] schema ensured on attempt {i+1}")
             break
         else:
             database.init_db()
+            print("[init_db] schema ensured (sqlite)")
             break
-    except psycopg2.OperationalError:
-        time.sleep(0.5)
-    except Exception:
+    except psycopg2.OperationalError as e:
+        last_err = e
+        print(f"[init_db] waiting for postgres (attempt {i+1}): {e}")
+        time.sleep(1)
+    except Exception as e:
+        last_err = e
+        print(f"[init_db] init failed on attempt {i+1}: {e!r}")
         if not database.IS_POSTGRESQL:
-            database.init_db()
-            break
-        time.sleep(0.5)
+            raise
+        time.sleep(1)
 else:
-    # Fallback for SQLite or if connection succeeds
-    database.init_db()
+    raise RuntimeError(f"Database init failed after retries: {last_err!r}")
 
 @app.route('/health')
 def health():
