@@ -21,7 +21,7 @@ def get_connection():
     if IS_POSTGRESQL:
         # For PostgreSQL
         try:
-            conn = psycopg2.connect(DATABASE_URL)
+            conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
             return conn
         except Exception as e:
             print(f"PostgreSQL connection error: {e}")
@@ -186,7 +186,7 @@ def create_task(user_id, title, description, due_date=None, recurring=None, recu
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         ''', (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id, tags))
-        task_id = c.fetchone()[0]
+        task_id = c.fetchone()['id']
     else:
         c.execute('''
             INSERT INTO tasks (user_id, title, description, due_date, recurring, recurring_interval, recurring_end_date, parent_task_id, tags)
